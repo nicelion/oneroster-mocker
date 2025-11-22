@@ -24,6 +24,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "csv-writer": "^1.6.0",
     "zod": "^4.1.12"
   }
 }

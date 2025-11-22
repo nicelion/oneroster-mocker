@@ -1,0 +1,5 @@
+sourcedId,status,dateLastModified,enabledUser,orgSourcedIds,role,username,userIds,givenName,familyName,middleName,identifier,email,sms,phone,agentSourcedIds,grades,password
+f167771e-16bf-4a4e-a481-a55551192448,active,,true,40a9b1be-6eb9-4456-836f-d00c0a444151,parent,Julio.Greenfelder12,98861739,Julio,Greenfelder,James,juliogreenfelder@nicelion.com,juliogreenfelder@nicelion.com,,,,,
+81eabe90-875c-4058-90f2-e46c2abc66d9,active,,true,40a9b1be-6eb9-4456-836f-d00c0a444151,student,Marge.Greenfelder,28378370,Marge,Greenfelder,Skyler,margegreenfelder@nicelion.com,margegreenfelder@nicelion.com,,,f167771e-16bf-4a4e-a481-a55551192448,10,
+004daf38-1f14-4a56-b758-42e9166ea382,active,,true,40a9b1be-6eb9-4456-836f-d00c0a444151,student,Tremaine_Greenfelder47,23637276,Tremaine,Greenfelder,Taylor,tremainegreenfelder@nicelion.com,tremainegreenfelder@nicelion.com,,,f167771e-16bf-4a4e-a481-a55551192448,10,
+58859ecf-2b2a-43f4-be56-437df1db1b44,active,,true,40a9b1be-6eb9-4456-836f-d00c0a444151,principal,Everette_Hahn,16006691,Everette,Hahn,Quinn,everettehahn@nicelion.com,everettehahn@nicelion.com,,,,KG,

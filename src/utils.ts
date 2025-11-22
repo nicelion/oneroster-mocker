@@ -1,5 +1,5 @@
 /**
- index.ts
+ utils.ts
  oneroster-mocker
  
  Created by Ian Thompson on November 18th 2025
@@ -12,4 +12,6 @@
  
 */
 
-export type Override<T, R> = Omit<T, keyof R> & R;
+export function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}

@@ -13,7 +13,13 @@
 */
 
 import z from "zod";
-import { ORDateTimeSchema, ORGradesFieldSchema, ORStatusSchema } from "./common";
+import {
+  ORDateTimeSchema,
+  ORGradeLevelSchema,
+  ORGradesFieldSchema,
+  ORStatusSchema,
+} from "./common";
+import { createObjectCsvWriter as createCsvWriter } from "csv-writer";
 
 /**
  * OneRoster role enumeration (1.1/1.2 data model)
@@ -78,7 +84,7 @@ export const ORUsersCsvRowSchema = z.object({
   enabledUser: OREnabledUserSchema,
 
   // Required: List of GUID References (comma-separated sourcedIds of orgs)
-  orgSourcedIds: ORGuidListCellSchema,
+  orgSourcedIds: z.string(),
 
   // Required: OneRoster role enumeration
   role: ORUserRoleSchema,
@@ -102,7 +108,7 @@ export const ORUsersCsvRowSchema = z.object({
   identifier: z.string().optional(),
 
   // Optional in spec, but many vendors require it; we’ll validate as proper email if present
-  email: z.string().email().optional(),
+  email: z.string().optional(),
 
   // Optional SMS address (string; often phone or SMS gateway address)
   sms: z.string().optional(),
@@ -111,14 +117,98 @@ export const ORUsersCsvRowSchema = z.object({
   phone: z.string().optional(),
 
   // Optional: List of GUID References for “agents” (usually parents/guardians)
-  agentSourcedIds: ORGuidListCellSchema.optional(),
+  agentSourcedIds: z.string().optional(),
 
   // Grade(s) associated with the user (student), now intended as a *list of strings*.
   // We keep it as a single cell string (often comma-separated) but reuse ORGradesFieldSchema.
-  grades: ORGradesFieldSchema.optional(),
+  grades: z.string().optional(),
 
   // Optional password (often omitted when using SSO)
   password: z.string().optional(),
 });
 
 export type ORUsersCsvRow = z.infer<typeof ORUsersCsvRowSchema>;
+
+const ORUserObject = z.object({
+  ...ORUsersCsvRowSchema.shape,
+  orgSourcedIds: z
+    .string()
+    .transform((value) => value.split(",").map(String))
+    .pipe(z.string().array()),
+  userIds: z
+    .string()
+    .transform((value) => value.split(",").map(String))
+    .pipe(z.string().array()),
+  agentSourcedIds: z
+    .string()
+    .transform((value) => value.split(",").map(String))
+    .pipe(z.string().array())
+    .optional(),
+  grades: z
+    .string()
+    .transform((value) => value.split(",").map(String))
+    .pipe(ORGradeLevelSchema.array())
+    .optional(),
+});
+
+export const ORUsers = (data: unknown | unknown[]) => {
+  return {
+    encode: () => {
+      if (Array.isArray(data)) return z.array(ORUsersCsvRowSchema).parse(data);
+
+      return ORUsersCsvRowSchema.parse(data);
+    },
+    decode: () => {
+      if (Array.isArray(data)) return z.array(ORUserObject).parse(data);
+
+      return ORUserObject.parse(data);
+    },
+
+    writer: (path: string) => {
+      return createCsvWriter({
+        path,
+        header: [
+          { id: "sourcedId", title: "sourcedId" },
+          { id: "status", title: "status" },
+          { id: "dateLastModified", title: "dateLastModified" },
+          { id: "enabledUser", title: "enabledUser" },
+          { id: "orgSourcedIds", title: "orgSourcedIds" },
+          { id: "role", title: "role" },
+          { id: "username", title: "username" },
+          { id: "userIds", title: "userIds" },
+          { id: "givenName", title: "givenName" },
+          { id: "familyName", title: "familyName" },
+          { id: "middleName", title: "middleName" },
+          { id: "identifier", title: "identifier" },
+          { id: "email", title: "email" },
+          { id: "sms", title: "sms" },
+          { id: "phone", title: "phone" },
+          { id: "agentSourcedIds", title: "agentSourcedIds" },
+          { id: "grades", title: "grades" },
+          { id: "password", title: "password" },
+        ],
+      });
+    },
+  };
+};
+
+export const OROrgCsvHeaderConfig = [
+  { id: "sourcedId", title: "sourcedId" },
+  { id: "status", title: "status" },
+  { id: "dateLastModified", title: "dateLastModified" },
+  { id: "enabledUser", title: "enabledUser" },
+  { id: "orgSourcedIds", title: "orgSourcedIds" },
+  { id: "role", title: "role" },
+  { id: "username", title: "username" },
+  { id: "userIds", title: "userIds" },
+  { id: "givenName", title: "givenName" },
+  { id: "familyName", title: "familyName" },
+  { id: "middleName", title: "middleName" },
+  { id: "identifier", title: "identifier" },
+  { id: "email", title: "email" },
+  { id: "sms", title: "sms" },
+  { id: "phone", title: "phone" },
+  { id: "agentSourcedIds", title: "agentSourcedIds" },
+  { id: "grades", title: "grades" },
+  { id: "password", title: "password" },
+];

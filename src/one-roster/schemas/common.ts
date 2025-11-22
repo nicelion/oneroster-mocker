@@ -14,6 +14,94 @@
 
 import { z } from "zod";
 
+export const csvStringArray = z.codec(
+  // INPUT schema: how the value looks in the CSV row
+  z.union([z.string(), z.null(), z.undefined()]),
+
+  // OUTPUT schema: how you want to work with it in code
+  z.array(z.string()),
+
+  {
+    // CSV → string[]
+    decode: (input) => {
+      if (input == null) return [];
+
+      let value = input.trim();
+
+      // Strip surrounding quotes: "A,B,C" -> A,B,C
+      if (value.startsWith('"') && value.endsWith('"')) {
+        value = value.slice(1, -1);
+      }
+
+      if (value === "") return [];
+
+      return value
+        .split(",")
+        .map((part) => part.trim())
+        .filter((part) => part.length > 0);
+    },
+
+    // string[] → CSV cell string
+    encode: (arr) => {
+      if (!arr || arr.length === 0) return "";
+      const joined = arr.join(",");
+      // You can decide if you ALWAYS want quotes or only when needed.
+      return `"${joined}"`;
+    },
+  },
+);
+
+export const csvStringArrayOptional = z.codec(
+  z.union([z.string(), z.null(), z.undefined()]),
+  z.array(z.string()).optional(),
+  {
+    decode: (input) => {
+      if (input == null) return undefined;
+
+      let value = input.trim();
+      if (value.startsWith('"') && value.endsWith('"')) {
+        value = value.slice(1, -1);
+      }
+      if (value === "") return undefined;
+
+      const parts = value
+        .split(",")
+        .map((part) => part.trim())
+        .filter((part) => part.length > 0);
+
+      return parts.length ? parts : undefined;
+    },
+
+    encode: (arr) => {
+      if (!arr || arr.length === 0) return "";
+      return `"${arr.join(",")}"`;
+    },
+  },
+);
+
+export const encodeCsvRow = <TInput, TOutput>(
+  schema: z.ZodType<TOutput, any, TInput>,
+  output: TOutput,
+): Record<string, string> => {
+  if (!schema.def.shape) throw new Error();
+
+  const schemaKeys = Object.getOwnPropertyNames(schema.def.shape);
+
+  const encoded = schema.encode(output);
+
+  // 1) Base object with *all* schema keys set to ""
+  const blankBase = Object.fromEntries(schemaKeys.map((key) => [key, ""] as const));
+
+  return {
+    ...blankBase,
+    ...encoded,
+  };
+  // Convert all undefined → ""
+  // return Object.fromEntries(
+  //   Object.entries(encoded).map(([k, v]) => [k, v === undefined || v === null ? "" : String(v)]),
+  // );
+};
+
 export const ORGradeLevelSchema = z.enum([
   "IT",
   "PR",
